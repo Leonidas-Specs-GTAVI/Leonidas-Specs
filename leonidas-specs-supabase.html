@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Leonida Specs — GTA VI Vehicle & Tactical Gear Database</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Supabase JavaScript Client SDK via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            display: ['Space Grotesk', 'sans-serif'],
+          },
+          colors: {
+            leonida: {
+              bg: '#080b14',
+              card: '#0f1626',
+              cardHover: '#141d33',
+              border: '#1e2942',
+              cyan: '#00f0ff',
+              magenta: '#ff2a85',
+              amber: '#ffb800'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .neon-cyan-glow { box-shadow: 0 0 15px rgba(0, 240, 255, 0.25); }
+    .neon-magenta-glow { box-shadow: 0 0 15px rgba(255, 42, 133, 0.25); }
+  </style>
+</head>
+<body class="bg-leonida-bg text-slate-100 min-h-screen flex flex-col antialiased selection:bg-leonida-magenta selection:text-white pb-28">
+
+  <!-- TOP NAVIGATION & BRAND HEADER -->
+  <header class="sticky top-0 z-30 bg-leonida-bg/90 backdrop-blur-md border-b border-leonida-border">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-leonida-cyan to-leonida-magenta p-[2px]">
+          <div class="w-full h-full bg-leonida-bg rounded-[10px] flex items-center justify-center font-display font-bold text-lg text-white">
+            VI
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-display font-bold text-lg sm:text-xl tracking-tight text-white">
+              LEONIDA<span class="text-leonida-cyan">SPECS</span>
+            </h1>
+            <span class="text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-leonida-magenta/20 text-leonida-magenta border border-leonida-magenta/30">
+              Supabase Live v1.0
+            </span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Community-Tested Stats & Second-Screen Companion</p>
+        </div>
+      </div>
+
+      <div class="flex items-center bg-leonida-card p-1 rounded-xl border border-leonida-border order-3 sm:order-2 w-full sm:w-auto justify-center">
+        <button id="tab-vehicles" onclick="switchCategory('vehicles')" 
+          class="flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 bg-leonida-cyan text-slate-950 shadow-sm">
+          Vehicles (<span id="count-vehicles">0</span>)
+        </button>
+        <button id="tab-gear" onclick="switchCategory('gear')" 
+          class="flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-white">
+          Tactical Gear (<span id="count-gear">0</span>)
+        </button>
+      </div>
+
+      <button onclick="openSubmitModal()" 
+        class="order-2 sm:order-3 px-3.5 py-2 rounded-xl bg-leonida-card hover:bg-leonida-cardHover border border-leonida-border hover:border-leonida-cyan/50 text-xs font-semibold text-leonida-cyan transition-all flex items-center gap-1.5">
+        <span>+ Submit Stat</span>
+      </button>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <main class="max-w-6xl mx-auto px-4 pt-4 flex-1 w-full">
+
+    <div class="mb-5 w-full rounded-xl bg-leonida-card/60 border border-dashed border-leonida-border p-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400">
+      <div class="flex items-center gap-2">
+        <span class="px-1.5 py-0.5 rounded bg-slate-800 text-[10px] font-mono uppercase text-slate-400">Ad Slot</span>
+        <span>Responsive Leaderboard Banner (728×90 Desktop / 320×50 Mobile)</span>
+      </div>
+      <span class="text-[11px] text-slate-500">Google AdSense / Gaming Ad Network</span>
+    </div>
+
+    <div class="mb-5 p-3.5 rounded-2xl bg-gradient-to-r from-leonida-card via-leonida-card to-leonida-magenta/10 border border-leonida-border flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="text-xs text-slate-300 leading-relaxed">
+        <strong class="text-white font-semibold">Why two stat bars?</strong> Dealership bars often hide true performance. We track official dealership ratings and verified community telemetry.
+      </div>
+      <div class="flex items-center gap-4 text-[11px] font-medium shrink-0">
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-slate-500"></span><span class="text-slate-400">In-Game Rating</span></div>
+        <div class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-leonida-cyan neon-cyan-glow"></span><span class="text-leonida-cyan font-semibold">Community Tested</span></div>
+      </div>
+    </div>
+
+    <!-- SEARCH & FILTER CONTROLS -->
+    <section class="mb-6 space-y-3">
+      <div class="flex flex-col md:flex-row gap-3">
+        <div class="relative flex-1">
+          <input id="search-input" type="text" oninput="renderDatabase()"
+            placeholder="Search by name, manufacturer, or spawn area..."
+            class="w-full pl-4 pr-4 py-3 rounded-xl bg-leonida-card border border-leonida-border text-sm text-white placeholder-slate-500 focus:outline-none focus:border-leonida-cyan transition-colors" />
+        </div>
+        <div class="flex items-center gap-2">
+          <label for="sort-select" class="text-xs text-slate-400 whitespace-nowrap font-medium">Sort by:</label>
+          <select id="sort-select" onchange="renderDatabase()"
+            class="w-full md:w-48 px-3.5 py-3 rounded-xl bg-leonida-card border border-leonida-border text-sm text-white focus:outline-none focus:border-leonida-cyan">
+            <option value="featured">Launch Featured</option>
+            <option value="primary-desc">Top Speed / Range (High → Low)</option>
+            <option value="secondary-desc">Acceleration / Fire Rate (High → Low)</option>
+            <option value="price-asc">Price (Low → High)</option>
+            <option value="price-desc">Price (High → Low)</option>
+          </select>
+        </div>
+      </div>
+      <div id="filter-pills-container" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+    </section>
+
+    <div class="flex items-center justify-between mb-4 text-xs text-slate-400">
+      <p>Showing <span id="visible-count" class="text-white font-semibold">0</span> verified entries</p>
+      <p class="hidden sm:block">Tip: Select up to <span class="text-leonida-cyan font-semibold">3 items</span> with "+ Compare"</p>
+    </div>
+
+    <!-- DATABASE GRID -->
+    <div id="database-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+    <!-- EMPTY SEARCH STATE -->
+    <div id="empty-state" class="hidden py-16 text-center bg-leonida-card/40 rounded-2xl border border-leonida-border">
+      <p class="text-slate-300 font-semibold mb-1">No matching specs found in Leonida</p>
+      <p class="text-xs text-slate-500 mb-4">Try clearing your filters or submit a new item.</p>
+      <button onclick="resetFilters()" class="px-4 py-2 rounded-xl bg-leonida-cyan text-slate-950 text-xs font-bold">Reset Filters</button>
+    </div>
+
+  </main>
+
+  <!-- STICKY BOTTOM COMPARISON BAR -->
+  <div id="compare-dock" class="fixed bottom-0 inset-x-0 z-40 transform translate-y-full transition-transform duration-300 bg-leonida-card/95 backdrop-blur-lg border-t border-leonida-cyan/40 shadow-2xl">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <span class="text-xs font-semibold text-leonida-cyan whitespace-nowrap mr-1">Compare (<span id="compare-count">0</span>/3):</span>
+        <div id="compare-pills" class="flex items-center gap-2"></div>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="clearComparison()" class="px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-white">Clear</button>
+        <button id="open-compare-btn" onclick="openCompareModal()"
+          class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-leonida-cyan to-blue-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all">
+          Compare Side-by-Side
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDE-BY-SIDE COMPARISON MODAL -->
+  <div id="compare-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-sm">
+    <div class="bg-leonida-card border border-leonida-border rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="px-5 py-4 border-b border-leonida-border flex items-center justify-between">
+        <div>
+          <h2 class="font-display font-bold text-lg text-white">Side-by-Side Telemetry Comparison</h2>
+          <p class="text-xs text-slate-400">Comparing community-tested true performance metrics</p>
+        </div>
+        <button onclick="closeCompareModal()" class="p-2 rounded-xl bg-slate-800/80 text-slate-300">✕</button>
+      </div>
+      <div id="compare-table-container" class="p-4 sm:p-6 overflow-auto flex-1"></div>
+    </div>
+  </div>
+
+  <!-- CROWDSOURCE / SUBMIT STAT MODAL -->
+  <div id="submit-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+    <div class="bg-leonida-card border border-leonida-border rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="px-5 py-4 border-b border-leonida-border flex items-center justify-between">
+        <div>
+          <h2 class="font-display font-bold text-lg text-white">Submit Launch Week Telemetry</h2>
+          <p class="text-xs text-slate-400">Submissions are sent directly to your Supabase database for review</p>
+        </div>
+        <button onclick="closeSubmitModal()" class="p-2 rounded-xl bg-slate-800/80 text-slate-300">✕</button>
+      </div>
+      <form id="submit-stat-form" onsubmit="handleStatSubmission(event)" class="p-5 space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Category</label>
+            <select id="sub-category" required class="w-full px-3 py-2.5 rounded-xl bg-leonida-bg border border-leonida-border text-sm text-white">
+              <option value="vehicles">Vehicle</option>
+              <option value="gear">Tactical Gear</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Class / Type</label>
+            <input id="sub-class" type="text" required placeholder="e.g., Super, Primary" class="w-full px-3 py-2.5 rounded-xl bg-leonida-bg border border-leonida-border text-sm text-white" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Item Name</label>
+            <input id="sub-name" type="text" required placeholder="e.g., Imponte Ruiner" class="w-full px-3 py-2.5 rounded-xl bg-leonida-bg border border-leonida-border text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Manufacturer</label>
+            <input id="sub-maker" type="text" required placeholder="e.g., Imponte" class="w-full px-3 py-2.5 rounded-xl bg-leonida-bg border border-leonida-border text-sm text-white" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Tested Speed / Range</label>
+            <input id="sub-speed" type="number" required min="1" max="300" placeholder="135" class="w-full px-3 py-2.5 rounded-xl bg-leonida-bg border border-leonida-border text-sm text-white" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Price ($)</label>
+            <input id="sub-price" type="number" required min="0" placeholder="1500000" class="w-full px-3 py-2.5 rounded-xl bg-leonida-bg border border-leonida-border text-sm text-white" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Spawn Location / Source</label>
+          <input id="sub-source" type="text" required placeholder="Legendary Motorsport" class="w-full px-3 py-2.5 rounded-xl bg-leonida-bg border border-leonida-border text-sm text-white" />
+        </div>
+        <div class="pt-2 flex items-center justify-end gap-2">
+          <button type="button" onclick="closeSubmitModal()" class="px-4 py-2.5 text-xs text-slate-400">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 rounded-xl bg-leonida-cyan text-slate-950 font-bold text-xs">Submit for Review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toast-banner" class="fixed top-20 right-4 z-50 transform translate-x-[150%] transition-transform duration-300 bg-leonida-card border border-leonida-cyan text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-xs font-medium">
+    <span class="w-2 h-2 rounded-full bg-leonida-cyan"></span>
+    <span id="toast-message">Notification message</span>
+  </div>
+
+  <!-- APPLICATION LOGIC & SUPABASE INTEGRATION -->
+  <script>
+    const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL'; 
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+    let supabaseClient = null;
+    if (window.supabase && SUPABASE_URL !== 'YOUR_SUPABASE_PROJECT_URL') {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // Complete Launch Week Fallback Dataset (Vehicles & Tactical Gear)
+    const fallbackDatabaseItems = [
+      {
+        id: 'v-banshee', category: 'vehicles', name: 'Banshee GTS', manufacturer: 'Bravado', itemClass: 'Sports',
+        price: 195000, seats: '2 Seats', drivetrain: 'RWD', source: 'Legendary Motorsport', badge: 'Trailer Verified',
+        stat1Label: 'Top Speed', stat1Unit: 'MPH', stat1InGame: 118, stat1Tested: 129.5, stat1Max: 150,
+        stat2Label: 'Acceleration', stat2Unit: '/100', stat2InGame: 82, stat2Tested: 89, stat2Max: 100,
+        stat3Label: 'Handling', stat3Unit: '/100', stat3InGame: 76, stat3Tested: 84, stat3Max: 100,
+        stat4Label: 'Braking', stat4Unit: '/100', stat4InGame: 70, stat4Tested: 78, stat4Max: 100
+      },
+      {
+        id: 'v-torero-xo', category: 'vehicles', name: 'Torero XO', manufacturer: 'Pegassi', itemClass: 'Super',
+        price: 2890000, seats: '2 Seats', drivetrain: 'AWD', source: 'Legendary Motorsport', badge: 'Launch Meta',
+        stat1Label: 'Top Speed', stat1Unit: 'MPH', stat1InGame: 128, stat1Tested: 136.2, stat1Max: 150,
+        stat2Label: 'Acceleration', stat2Unit: '/100', stat2InGame: 92, stat2Tested: 96, stat2Max: 100,
+        stat3Label: 'Handling', stat3Unit: '/100', stat3InGame: 88, stat3Tested: 91, stat3Max: 100,
+        stat4Label: 'Braking', stat4Unit: '/100', stat4InGame: 85, stat4Tested: 89, stat4Max: 100
+      },
+      {
+        id: 'v-dominator-gt', category: 'vehicles', name: 'Dominator GT', manufacturer: 'Vapid', itemClass: 'Muscle',
+        price: 425000, seats: '2 Seats', drivetrain: 'RWD', source: 'Southern Leonida Autos', badge: 'Trailer Verified',
+        stat1Label: 'Top Speed', stat1Unit: 'MPH', stat1InGame: 115, stat1Tested: 124.8, stat1Max: 150,
+        stat2Label: 'Acceleration', stat2Unit: '/100', stat2InGame: 84, stat2Tested: 87, stat2Max: 100,
+        stat3Label: 'Handling', stat3Unit: '/100', stat3InGame: 68, stat3Tested: 74, stat3Max: 100,
+        stat4Label: 'Braking', stat4Unit: '/100', stat4InGame: 65, stat4Tested: 71, stat4Max: 100
+      },
+      {
+        id: 'v-cheetah-classic', category: 'vehicles', name: 'Cheetah Classic', manufacturer: 'Grotti', itemClass: 'Sports',
+        price: 865000, seats: '2 Seats', drivetrain: 'RWD', source: 'Street Spawn - Ocean Beach', badge: 'Vice Icon',
+        stat1Label: 'Top Speed', stat1Unit: 'MPH', stat1InGame: 116, stat1Tested: 123.0, stat1Max: 150,
+        stat2Label: 'Acceleration', stat2Unit: '/100', stat2InGame: 80, stat2Tested: 85, stat2Max: 100,
+        stat3Label: 'Handling', stat3Unit: '/100', stat3InGame: 84, stat3Tested: 88, stat3Max: 100,
+        stat4Label: 'Braking', stat4Unit: '/100', stat4InGame: 74, stat4Tested: 79, stat4Max: 100
+      },
+      {
+        id: 'v-tulip', category: 'vehicles', name: 'Tulip M-100', manufacturer: 'Declasse', itemClass: 'Muscle',
+        price: 68000, seats: '4 Seats', drivetrain: 'RWD', source: 'Story Unlock - Chapter 1', badge: 'Trailer Verified',
+        stat1Label: 'Top Speed', stat1Unit: 'MPH', stat1InGame: 104, stat1Tested: 112.4, stat1Max: 150,
+        stat2Label: 'Acceleration', stat2Unit: '/100', stat2InGame: 72, stat2Tested: 76, stat2Max: 100,
+        stat3Label: 'Handling', stat3Unit: '/100', stat3InGame: 64, stat3Tested: 69, stat3Max: 100,
+        stat4Label: 'Braking', stat4Unit: '/100', stat4InGame: 60, stat4Tested: 63, stat4Max: 100
+      },
+      {
+        id: 'v-comet-s2', category: 'vehicles', name: 'Comet S2 Cabrio', manufacturer: 'Pfister', itemClass: 'Sports',
+        price: 1120000, seats: '2 Seats', drivetrain: 'RWD', source: 'Legendary Motorsport', badge: 'Launch Week Data',
+        stat1Label: 'Top Speed', stat1Unit: 'MPH', stat1InGame: 121, stat1Tested: 127.6, stat1Max: 150,
+        stat2Label: 'Acceleration', stat2Unit: '/100', stat2InGame: 86, stat2Tested: 90, stat2Max: 100,
+        stat3Label: 'Handling', stat3Unit: '/100', stat3InGame: 85, stat3Tested: 89, stat3Max: 100,
+        stat4Label: 'Braking', stat4Unit: '/100', stat4InGame: 80, stat4Tested: 84, stat4Max: 100
+      },
+      {
+        id: 'v-sanchez', category: 'vehicles', name: 'Sanchez Rally', manufacturer: 'Maibatsu', itemClass: 'Motorcycles',
+        price: 14500, seats: '2 Seats', drivetrain: 'RWD', source: 'Street Spawn - Grassrivers', badge: 'Best Value',
+        stat1Label: 'Top Speed', stat1Unit: 'MPH', stat1InGame: 98, stat1Tested: 109.0, stat1Max: 150,
+        stat2Label: 'Acceleration', stat2Unit: '/100', stat2InGame: 83, stat2Tested: 88, stat2Max: 100,
+        stat3Label: 'Handling', stat3Unit: '/100', stat3InGame: 90, stat3Tested: 94, stat3Max: 100,
+        stat4Label: 'Braking', stat4Unit: '/100', stat4InGame: 76, stat4Tested: 81, stat4Max: 100
+      },
+      {
+        id: 'v-dubsta-6x6', category: 'vehicles', name: 'Dubsta 6x6', manufacturer: 'Benefactor', itemClass: 'Off-Road',
+        price: 375000, seats: '6 Seats', drivetrain: '6WD', source: 'Warstock / Leonida Trail', badge: 'Squad Hauler',
+        stat1Label: 'Top Speed', stat1Unit: 'MPH', stat1InGame: 102, stat1Tested: 108.5, stat1Max: 150,
+        stat2Label: 'Acceleration', stat2Unit: '/100', stat2InGame: 74, stat2Tested: 79, stat2Max: 100,
+        stat3Label: 'Handling', stat3Unit: '/100', stat3InGame: 71, stat3Tested: 77, stat3Max: 100,
+        stat4Label: 'Braking', stat4Unit: '/100', stat4InGame: 66, stat4Tested: 70, stat4Max: 100
+      },
+      {
+        id: 'g-carbine-mk2', category: 'gear', name: 'Tactical Carbine Mk II', manufacturer: 'Hawk & Little', itemClass: 'Primary',
+        price: 18500, seats: '30 Rds', drivetrain: 'Auto', source: 'Ammu-Nation - Vice City', badge: 'All-Rounder',
+        stat1Label: 'Effective Range', stat1Unit: 'M', stat1InGame: 65, stat1Tested: 82, stat1Max: 100,
+        stat2Label: 'Fire Rate', stat2Unit: '/100', stat2InGame: 75, stat2Tested: 78, stat2Max: 100,
+        stat3Label: 'Accuracy', stat3Unit: '/100', stat3InGame: 74, stat3Tested: 85, stat3Max: 100,
+        stat4Label: 'Mobility', stat4Unit: '/100', stat4InGame: 70, stat4Tested: 72, stat4Max: 100
+      },
+      {
+        id: 'g-compact-smg', category: 'gear', name: 'Micro PDW Tactical', manufacturer: 'Vom Feuer', itemClass: 'Compact',
+        price: 9200, seats: '32 Rds', drivetrain: 'Auto', source: 'Vehicle Compatible', badge: 'Drive-By Meta',
+        stat1Label: 'Effective Range', stat1Unit: 'M', stat1InGame: 38, stat1Tested: 45, stat1Max: 100,
+        stat2Label: 'Fire Rate', stat2Unit: '/100', stat2InGame: 88, stat2Tested: 94, stat2Max: 100,
+        stat3Label: 'Accuracy', stat3Unit: '/100', stat3InGame: 58, stat3Tested: 64, stat3Max: 100,
+        stat4Label: 'Mobility', stat4Unit: '/100', stat4InGame: 92, stat4Tested: 96, stat4Max: 100
+      },
+      {
+        id: 'g-service-sidearm', category: 'gear', name: 'Leonida Service 9mm', manufacturer: 'Hawk & Little', itemClass: 'Sidearm',
+        price: 2400, seats: '17 Rds', drivetrain: 'Semi', source: 'Starting Loadout', badge: 'Launch Week Data',
+        stat1Label: 'Effective Range', stat1Unit: 'M', stat1InGame: 32, stat1Tested: 41, stat1Max: 100,
+        stat2Label: 'Fire Rate', stat2Unit: '/100', stat2InGame: 62, stat2Tested: 71, stat2Max: 100,
+        stat3Label: 'Accuracy', stat3Unit: '/100', stat3InGame: 76, stat3Tested: 82, stat3Max: 100,
+        stat4Label: 'Mobility', stat4Unit: '/100', stat4InGame: 95, stat4Tested: 98, stat4Max: 100
+      },
+      {
+        id: 'g-recon-optic', category: 'gear', name: 'Long-Range Recon System', manufacturer: 'Shrewsbury', itemClass: 'Long-Range',
+        price: 42000, seats: '10 Rds', drivetrain: 'Bolt', source: 'Story Unlock - Chapter 2', badge: 'Precision Tier',
+        stat1Label: 'Effective Range', stat1Unit: 'M', stat1InGame: 95, stat1Tested: 100, stat1Max: 100,
+        stat2Label: 'Fire Rate', stat2Unit: '/100', stat2InGame: 25, stat2Tested: 28, stat2Max: 100,
+        stat3Label: 'Accuracy', stat3Unit: '/100', stat3InGame: 94, stat3Tested: 99, stat3Max: 100,
+        stat4Label: 'Mobility', stat4Unit: '/100', stat4InGame: 45, stat4Tested: 48, stat4Max: 100
+      },
+      {
+        id: 'g-breach-launcher', category: 'gear', name: 'Tactical Breacher Utility', manufacturer: 'Coil USA', itemClass: 'Utility',
+        price: 34000, seats: '6 Rds', drivetrain: 'Single', source: 'Heist Prep Gear', badge: 'Vault Utility',
+        stat1Label: 'Effective Range', stat1Unit: 'M', stat1InGame: 50, stat1Tested: 58, stat1Max: 100,
+        stat2Label: 'Fire Rate', stat2Unit: '/100', stat2InGame: 35, stat2Tested: 40, stat2Max: 100,
+        stat3Label: 'Accuracy', stat3Unit: '/100', stat3InGame: 68, stat3Tested: 74, stat3Max: 100,
+        stat4Label: 'Mobility', stat4Unit: '/100', stat4InGame: 60, stat4Tested: 64, stat4Max: 100
+      }
+    ];
+
+    let databaseItems = [];
+    let activeCategory = 'vehicles';
+    let activeFilter = 'All';
+    let selectedCompareIds = [];
+
+    const categoryFilters = {
+      vehicles: ['All', 'Super', 'Muscle', 'Sports', 'Off-Road', 'Motorcycles'],
+      gear: ['All', 'Primary', 'Compact', 'Sidearm', 'Long-Range', 'Utility']
+    };
+
+    async function loadDatabaseData() {
+      if (!supabaseClient) {
+        databaseItems = fallbackDatabaseItems;
+        renderFilterPills();
+        renderDatabase();
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('vehicles')
+          .select('*')
+          .eq('approved', true);
+
+        if (error || !data || data.length === 0) {
+          databaseItems = fallbackDatabaseItems;
+        } else {
+          databaseItems = data;
+        }
+      } catch (err) {
+        databaseItems = fallbackDatabaseItems;
+      }
+
+      renderFilterPills();
+      renderDatabase();
+    }
+
+    function switchCategory(category) {
+      activeCategory = category;
+      activeFilter = 'All';
+
+      const vBtn = document.getElementById('tab-vehicles');
+      const gBtn = document.getElementById('tab-gear');
+
+      if (category === 'vehicles') {
+        vBtn.className = 'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 bg-leonida-cyan text-slate-950 shadow-sm';
+        gBtn.className = 'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-white';
+      } else {
+        gBtn.className = 'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 bg-leonida-magenta text-white shadow-sm';
+        vBtn.className = 'flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all flex items-center justify-center gap-2 text-slate-400 hover:text-white';
+      }
+
+      renderFilterPills();
+      renderDatabase();
+    }
+
+    function renderFilterPills() {
+      const container = document.getElementById('filter-pills-container');
+      const pills = categoryFilters[activeCategory] || ['All'];
+
+      container.innerHTML = pills.map(pill => {
+        const isActive = activeFilter === pill;
+        const activeClasses = activeCategory === 'vehicles'
+          ? 'bg-leonida-cyan/20 text-leonida-cyan border-leonida-cyan'
+          : 'bg-leonida-magenta/20 text-leonida-magenta border-leonida-magenta';
+        const inactiveClasses = 'bg-leonida-card text-slate-400 border-leonida-border hover:text-white hover:border-slate-600';
+
+        return `
+          <button onclick="setFilter('${pill}')"
+            class="px-3.5 py-2 rounded-xl border text-xs font-semibold whitespace-nowrap transition-all ${isActive ? activeClasses : inactiveClasses}">
+            ${pill}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function setFilter(pill) {
+      activeFilter = pill;
+      renderFilterPills();
+      renderDatabase();
+    }
+
+    function resetFilters() {
+      document.getElementById('search-input').value = '';
+      document.getElementById('sort-select').value = 'featured';
+      activeFilter = 'All';
+      renderFilterPills();
+      renderDatabase();
+    }
+
+    function formatPrice(num) {
+      if (!num || num === 0) return 'Free';
+      return '$' + num.toLocaleString('en-US');
+    }
+
+    function buildStatBarHTML(label, unit, inGameVal, testedVal, maxVal) {
+      const inGamePct = Math.min(100, Math.round((inGameVal / maxVal) * 100));
+      const testedPct = Math.min(100, Math.round((testedVal / maxVal) * 100));
+      const diff = +(testedVal - inGameVal).toFixed(1);
+      const diffText = diff > 0 ? `+${diff}` : `${diff}`;
+
+      return `
+        <div class="space-y-1">
+          <div class="flex items-center justify-between text-[11px]">
+            <span class="text-slate-400 font-medium">${label}</span>
+            <div class="flex items-center gap-1.5 font-mono">
+              <span class="text-slate-500">${inGameVal}</span>
+              <span class="text-slate-600">→</span>
+              <span class="text-white font-bold">${testedVal}${unit === 'MPH' ? ' MPH' : ''}</span>
+              <span class="text-[10px] px-1 rounded bg-leonida-cyan/10 text-leonida-cyan">${diffText}</span>
+            </div>
+          </div>
+          <div class="relative h-2 w-full bg-slate-900 rounded-full overflow-hidden border border-slate-800/80">
+            <div class="absolute top-0 left-0 h-full bg-gradient-to-r from-cyan-500 to-leonida-cyan rounded-full transition-all duration-500" style="width: ${testedPct}%"></div>
+            <div class="absolute top-0 bottom-0 w-0.5 bg-white/80 z-10" style="left: ${inGamePct}%"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderDatabase() {
+      const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+      const sortOption = document.getElementById('sort-select').value;
+      const grid = document.getElementById('database-grid');
+      const emptyState = document.getElementById('empty-state');
+
+      document.getElementById('count-vehicles').textContent = databaseItems.filter(i => i.category === 'vehicles').length;
+      document.getElementById('count-gear').textContent = databaseItems.filter(i => i.category === 'gear').length;
+
+      let filtered = databaseItems.filter(item => {
+        if (item.category !== activeCategory) return false;
+        if (activeFilter !== 'All' && item.itemClass !== activeFilter) return false;
+        if (searchQuery) {
+          const haystack = `${item.name} ${item.manufacturer} ${item.itemClass} ${item.source} ${item.drivetrain}`.toLowerCase();
+          if (!haystack.includes(searchQuery)) return false;
+        }
+        return true;
+      });
+
+      if (sortOption === 'primary-desc') filtered.sort((a, b) => b.stat1Tested - a.stat1Tested);
+      else if (sortOption === 'secondary-desc') filtered.sort((a, b) => b.stat2Tested - a.stat2Tested);
+      else if (sortOption === 'price-asc') filtered.sort((a, b) => a.price - b.price);
+      else if (sortOption === 'price-desc') filtered.sort((a, b) => b.price - a.price);
+
+      document.getElementById('visible-count').textContent = filtered.length;
+
+      if (filtered.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      grid.innerHTML = filtered.map(item => {
+        const isSelected = selectedCompareIds.includes(item.id);
+        const seatLabel = item.category === 'vehicles' ? `${item.seats}` : item.seats;
+
+        return `
+          <article class="bg-leonida-card hover:bg-leonida-cardHover border ${isSelected ? 'border-leonida-cyan neon-cyan-glow' : 'border-leonida-border'} rounded-2xl p-4 flex flex-col justify-between transition-all">
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2.5">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 text-[11px] font-semibold">${item.itemClass}</span>
+                  <span class="px-2 py-0.5 rounded-md bg-leonida-magenta/15 text-leonida-magenta border border-leonida-magenta/25 text-[10px] font-semibold">${item.badge}</span>
+                </div>
+                <span class="font-mono font-bold text-sm text-emerald-400">${formatPrice(item.price)}</span>
+              </div>
+
+              <div class="mb-3">
+                <p class="text-[11px] uppercase tracking-wider text-slate-400 font-semibold">${item.manufacturer}</p>
+                <h3 class="font-display font-bold text-lg text-white leading-tight">${item.name}</h3>
+              </div>
+
+              <div class="flex items-center gap-2 mb-4 text-[11px] text-slate-300">
+                <span class="px-2.5 py-1 rounded-lg bg-leonida-bg border border-leonida-border font-medium">${item.drivetrain}</span>
+                <span class="px-2.5 py-1 rounded-lg bg-leonida-bg border border-leonida-border font-medium">${seatLabel}</span>
+              </div>
+
+              <div class="space-y-2.5 mb-4">
+                ${buildStatBarHTML(item.stat1Label, item.stat1Unit, item.stat1InGame, item.stat1Tested, item.stat1Max)}
+                ${buildStatBarHTML(item.stat2Label, item.stat2Unit, item.stat2InGame, item.stat2Tested, item.stat2Max)}
+                ${buildStatBarHTML(item.stat3Label, item.stat3Unit, item.stat3InGame, item.stat3Tested, item.stat3Max)}
+                ${buildStatBarHTML(item.stat4Label, item.stat4Unit, item.stat4InGame, item.stat4Tested, item.stat4Max)}
+              </div>
+            </div>
+
+            <div class="pt-3 border-t border-leonida-border/80 flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5 text-[11px] text-slate-400 truncate">
+                <span class="truncate">${item.source}</span>
+              </div>
+
+              <button onclick="toggleCompare('${item.id}')"
+                class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 ${
+                  isSelected ? 'bg-leonida-cyan text-slate-950' : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700'
+                }">
+                ${isSelected ? '✓ Selected' : '+ Compare'}
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function toggleCompare(itemId) {
+      const idx = selectedCompareIds.indexOf(itemId);
+      if (idx > -1) {
+        selectedCompareIds.splice(idx, 1);
+      } else {
+        if (selectedCompareIds.length >= 3) {
+          showToast('Maximum 3 items can be compared at once.');
+          return;
+        }
+        selectedCompareIds.push(itemId);
+      }
+      updateCompareDock();
+      renderDatabase();
+    }
+
+    function clearComparison() {
+      selectedCompareIds = [];
+      updateCompareDock();
+      renderDatabase();
+    }
+
+    function updateCompareDock() {
+      const dock = document.getElementById('compare-dock');
+      const countEl = document.getElementById('compare-count');
+      const pillsEl = document.getElementById('compare-pills');
+      const openBtn = document.getElementById('open-compare-btn');
+
+      countEl.textContent = selectedCompareIds.length;
+      if (selectedCompareIds.length === 0) {
+        dock.classList.add('translate-y-full');
+        return;
+      }
+      dock.classList.remove('translate-y-full');
+      openBtn.disabled = selectedCompareIds.length < 2;
+
+      pillsEl.innerHTML = selectedCompareIds.map(id => {
+        const item = databaseItems.find(i => i.id === id);
+        if (!item) return '';
+        return `
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-leonida-bg border border-leonida-border text-xs text-white whitespace-nowrap">
+            <span>${item.name}</span>
+            <button onclick="toggleCompare('${item.id}')" class="text-slate-400 hover:text-leonida-magenta font-bold">×</button>
+          </span>
+        `;
+      }).join('');
+    }
+
+    function openCompareModal() {
+      if (selectedCompareIds.length < 2) return;
+      const items = selectedCompareIds.map(id => databaseItems.find(i => i.id === id)).filter(Boolean);
+      const container = document.getElementById('compare-table-container');
+
+      container.innerHTML = `
+        <table class="w-full text-left border-collapse min-w-[540px]">
+          <thead>
+            <tr class="border-b border-leonida-border">
+              <th class="py-3 px-3 text-xs font-semibold text-slate-400 w-1/4">Metric</th>
+              ${items.map(item => `<th class="py-3 px-3"><div class="text-[11px] text-leonida-cyan font-semibold">${item.manufacturer}</div><div class="font-display font-bold text-base text-white">${item.name}</div></th>`).join('')}
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-leonida-border/60 text-sm">
+            <tr><td class="py-3 px-3 text-xs text-slate-400">Class</td>${items.map(i => `<td class="py-3 px-3 text-slate-200">${i.itemClass}</td>`).join('')}</tr>
+            <tr><td class="py-3 px-3 text-xs text-slate-400">Price</td>${items.map(i => `<td class="py-3 px-3 font-mono font-bold text-emerald-400">${formatPrice(i.price)}</td>`).join('')}</tr>
+            <tr><td class="py-3 px-3 text-xs text-slate-400">Tested ${items[0].stat1Label}</td>${items.map(i => `<td class="py-3 px-3 font-mono font-bold text-leonida-cyan">${i.stat1Tested} ${i.stat1Unit}</td>`).join('')}</tr>
+            <tr><td class="py-3 px-3 text-xs text-slate-400">Where to Find</td>${items.map(i => `<td class="py-3 px-3 text-xs text-slate-300">${i.source}</td>`).join('')}</tr>
+          </tbody>
+        </table>
+      `;
+      const modal = document.getElementById('compare-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeCompareModal() {
+      const modal = document.getElementById('compare-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function openSubmitModal() {
+      document.getElementById('sub-category').value = activeCategory;
+      const modal = document.getElementById('submit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSubmitModal() {
+      document.getElementById('submit-modal').classList.add('hidden');
+      document.getElementById('submit-modal').classList.remove('flex');
+    }
+
+    async function handleStatSubmission(event) {
+      event.preventDefault();
+      const cat = document.getElementById('sub-category').value;
+      const itemClass = document.getElementById('sub-class').value.trim();
+      const name = document.getElementById('sub-name').value.trim();
+      const manufacturer = document.getElementById('sub-maker').value.trim();
+      const testedPrimary = parseFloat(document.getElementById('sub-speed').value);
+      const price = parseInt(document.getElementById('sub-price').value, 10);
+      const source = document.getElementById('sub-source').value.trim();
+      const isVehicle = cat === 'vehicles';
+
+      const newRecord = {
+        category: cat,
+        name: name,
+        manufacturer: manufacturer,
+        itemClass: itemClass,
+        price: price,
+        seats: isVehicle ? '2 Seats' : '30 Rds',
+        drivetrain: isVehicle ? 'RWD' : 'Auto',
+        source: source,
+        badge: 'Community Submitted',
+        stat1Label: isVehicle ? 'Top Speed' : 'Effective Range',
+        stat1Unit: isVehicle ? 'MPH' : 'M',
+        stat1InGame: Math.round(testedPrimary * 0.9),
+        stat1Tested: testedPrimary,
+        stat1Max: isVehicle ? 150 : 100,
+        stat2Label: isVehicle ? 'Acceleration' : 'Fire Rate',
+        stat2Unit: '/100', stat2InGame: 75, stat2Tested: 82, stat2Max: 100,
+        stat3Label: isVehicle ? 'Handling' : 'Accuracy',
+        stat3Unit: '/100', stat3InGame: 72, stat3Tested: 79, stat3Max: 100,
+        stat4Label: isVehicle ? 'Braking' : 'Mobility',
+        stat4Unit: '/100', stat4InGame: 70, stat4Tested: 76, stat4Max: 100,
+        approved: false
+      };
+
+      if (!supabaseClient) {
+        newRecord.id = 'custom-' + Date.now();
+        databaseItems.unshift(newRecord);
+        closeSubmitModal();
+        switchCategory(cat);
+        showToast(`Added "${name}" locally!`);
+        return;
+      }
+
+      try {
+        const { error } = await supabaseClient.from('vehicles').insert([newRecord]);
+        if (error) {
+          alert('Submission error: ' + error.message);
+        } else {
+          showToast('Stat submitted for review successfully!');
+          closeSubmitModal();
+          document.getElementById('submit-stat-form').reset();
+        }
+      } catch (err) {
+        alert('Network error during submission.');
+      }
+    }
+
+    let toastTimeout;
+    function showToast(message) {
+      const toast = document.getElementById('toast-banner');
+      document.getElementById('toast-message').textContent = message;
+      toast.classList.remove('translate-x-[150%]');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => toast.classList.add('translate-x-[150%]'), 3000);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      loadDatabaseData();
+    });
+  </script>
+</body>
+</html>
